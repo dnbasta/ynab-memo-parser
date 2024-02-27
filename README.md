@@ -1,98 +1,77 @@
-# ynab-api-import
+# ynab-memo-parser
 
-[![GitHub Release](https://img.shields.io/github/release/dnbasta/ynab-api-import?style=flat)]() 
+[![GitHub Release](https://img.shields.io/github/release/dnbasta/ynab-mmo-parser?style=flat)]() 
 [![Github Release](https://img.shields.io/maintenance/yes/2100)]()
 
-This library enables importing YNAB transactions via the 
-[Gocardless Bank Account Data API (formerly Nordigen)](https://gocardless.com/bank-account-data/). 
-It can be helpful for cases in which your bank is not covered by YNABs native import functionality.
+This library helps you to use original memo and payee information from your bank transactions to either show additional
+details or substitute/change the current one in YNAB. It can be helpful for cases in which YNAB import does not handle the 
+information coming from the bank well (e.g. not showing the actual bank memo or populating a wrong payee name).
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/dnbasta)
 
 ## Preparations
-### Gocardless Bank Account API (formerly Nordigen)
-1. [Check](https://gocardless.com/bank-account-data/coverage/) if your bank is supported by the API.
-2. Create an account with Gocardless for the Bank Account Data API (They have a separate Login for it which you can 
-get to by clicking on 'Get API Keys' or clicking the link at the bottom of their standard login page)
-3. Go to Developers -> User Secrets and create a new pair of secret_id and secret_key
-### YNAB
 1. Create a personal access token for YNAB as described [here](https://api.ynab.com/)
+2. Get the IDs of your budget and account which records are faulty. You can find both IDs if you go to 
+https://app.ynab.com/ and open the target account by clicking on the name on the left hand side menu. 
+The URL does now contain both IDs `https://app.ynab.com/<budget_id>/accounts/<account_id>`
 
 ## Basic Usage
 ### 1. Install library from PyPI
 
 ```bash
-pip install ynab-api-import
+pip install ynab-memo-parser
 ```
-### 2. Initiate Library
-Provide a unique reference (e.g. `'mycheckingaccount'`)  per bank connection to identify the grant later on. 
-You can find the IDs of your budget and the account if you go to https://app.ynab.com/ and open the target account by clicking on the name on the left hand side menu. The URL does now contain both IDs `https://app.ynab.com/<budget_id>/accounts/<account_id>`
+### 2. Check your original memo and payee values for potential things to use
+All records in YNAB come with their original memo and payee information attached. You can see both values if you use
+the `fetch records' function of this library and look at a couple sample records.
 ```py
-from ynabapiimport import YnabApiImport
-ynab_api_import = YnabApiImport(secret_id='<secret_id>', 
-                                secret_key='<secret_key>',
-                                reference='<reference>',
-                                token='<ynab_token>',
-                                budget_id='<budget_id>',
-                                account_id='<account_id>')
-```
-Optionally you can initiate an object from a `config.yaml` file. To do that create a YAML file with the following content:
-```yaml
-secret_id: <secret_id>
-secret_key: <secret_key>
-reference: <reference>
-token: <ynab_token>
-budget_id: <budget_id>
-account_id: <account_id>
-```
-Save the file and provide the path to the library when initializing
-```py
-ynab_api_import = YnabApiImport.from_yaml('path/to/config.yaml')
-```
-### 2. Find the institution_id of your bank
-Countrycode is ISO 3166 two-character country code. 
-```py
+from ynabmemoparser import YnabMemoParser
 
-ynab_api_import.fetch_institutions(countrycode='<countrycode>')
+ynab_memo_parser = YnabMemoParser(token='<token>', budget='<budget>', account='<account>')
+ynab_memo_parser.fetch_record_dicts()
 ```
-You get back a dictionary with all available banks in that country and their institution_ids.
-Find and save the institution_id of your bank.
-```py
-[{'name': '<name>', 'institution_id': '<institution_id>'}]
-```
+You will get back a dictionary with all data stored for the transaction. The library uses the following keys with the
+stated labels
+- `import_payee_name_original` as `original_memo`
+- `import_payee_name` as `original_payee`
+- `payee` as `current_payee`
+- `memo` as `current_memo`
 
-### 3. Create Auth Link and authenticate with your bank
-Provide the institution_id. You get back a link which you need to copy to your browser and go through authentication flow with your bank
-```py
-ynab_api_import.create_auth_link(institution_id='<institution_id>')
-```
 
-### 4. Run import with your reference and YNAB identifiers
-Optionally you can provide a `startdate` argument in form of a `datetime.date` object to only import transactions from a specific date onwards. Equally optionally you can provide a `memo_regex` argument in from of a regex string to the call to clean the memo string before importing into YNAB. A good helper to write your regex is https://regex101.com  
+### 3. Create a `Parser` child class which implements your logic
+The class needs to implement a logic for `parse_payee()` and `parse_memo()` based on the values coming from the four 
+fields above. If you don't want to change anything in the field you e.g. just `return current_payee` inside the 
+`parse_payee()` function. 
+
 ```py
-ynab_api_import.import_transactions()
+from ynabmemoparser import Parser
+
+class MyParser(Parser):
+
+    def parse_payee(self, original_payee: str, current_payee: str, original_memo: str, current_memo: str) -> str:
+        # your implementation
+
+    def parse_memo(self, original_payee: str, current_payee: str, original_memo: str, current_memo: str) -> str:
+        # your implementation
+
 ```
-## Advanced Usage
-### Handling of multiple accounts in your bank connection (`MultipleAccountsError`)
-The library assumes that you have one active account in your bank connection. It will raise an error if there are no accounts in your connection or more than one. In the latter case you need to provide the correct `resource_id` when initializing the library. You can find the `resource_id` by looking into the available options in the error message.
+### 3. Test your parser on some records
 ```py
-from ynabapiimport import YnabApiImport
-ynab_api_import = YnabApiImport(resource_id='<resource_id>',
-                                secret_id='<secret_id>', 
-                                secret_key='<secret_key>',
-                                reference='<reference>',
-                                token='<ynab_token>',
-                                budget_id='<budget_id>',
-                                account_id='<account_id>')
+from ynabmemoparser import YnabMemoParser
+
+ynab_memo_parser = YnabMemoParser(token='<token>', budget='<budget>', account='<account>')
+record_dicts = ynab_memo_parser.fetch_record_dicts()
+parsed_records = ynab_memo_parser.parse_records(records_dicts=record_dicts, parser=MyParser())
 ```
-### Testing your `memo_regex`
-You can test your `memo_regex` with a call to `test_memo_regex()`. The function will fetch transactions from your bank account, apply the regex and output the old and new memo strings in a dict for inspection
+You will get back a list of `YnabRecord` objects. Check the `payee` and `memo` fields in these objects to see the result
+of your parser.
+
+### 4. Update your records in YNAB
+If you are satisfied with your parsing results you can pass the list of `YnabRecord` to the `update_records()`function.
+It will update the `payee`and `memo` values in YNAB with the values in the `YnabRecord` object
 ```py
-ynab_api_import.test_memo_regex(memo_regex=r'<memo_regex')
+ynab_memo_parser.update_records(parsed_records)
 ```
-prints and returns a list with following content
-```
-[{original_memo: cleaned_memo}]
-```
+If the insert is successful you get back an integer with the number of records which have been updated.
 
 
