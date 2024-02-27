@@ -13,11 +13,10 @@ YNAB_BASE_URL = 'https://api.youneedabudget.com/v1'
 @dataclass
 class YnabMemoParser:
 
-	def __init__(self, budget: str, account: str, token: str, parser: Parser) -> None:
+	def __init__(self, budget: str, account: str, token: str) -> None:
 		self._budget = budget
 		self._account = account
 		self._header = {'Authorization': f'Bearer {token}'}
-		self._recordbuilder = RecordBuilder(parser = parser)
 
 	def fetch_record_dicts(self) -> List[dict]:
 		r = requests.get(f'{YNAB_BASE_URL}/budgets/{self._budget}/accounts/{self._account}/transactions',
@@ -26,8 +25,10 @@ class YnabMemoParser:
 		transactions_dict = r.json()['data']['transactions']
 		return transactions_dict
 
-	def parse_records(self ,records_dicts: List[dict]) -> List[YnabRecord]:
-		parsed_records = [self._recordbuilder.build(t) for t in records_dicts]
+	@staticmethod
+	def parse_records(records_dicts: List[dict], parser: Parser) -> List[YnabRecord]:
+		rb = RecordBuilder(parser=parser)
+		parsed_records = [rb.build(t) for t in records_dicts]
 		return parsed_records
 
 	def update_records(self, ynab_records: List[YnabRecord]) -> int:
