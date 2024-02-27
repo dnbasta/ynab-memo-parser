@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "ynabmemoparser"
+name = "ynab-memo-parser"
 version = "0.0.0"
 description = ""
 authors = ["Daniel Basta <ynab@basta.info>"]
