@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "ynabmemoparser"
+version = "0.0.0"
+description = ""
+authors = ["Daniel Basta <ynab@basta.info>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = '>=3.8,<4.0'
+requests = '>=2.28.0'
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
