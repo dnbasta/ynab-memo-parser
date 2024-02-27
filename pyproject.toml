@@ -1,9 +1,16 @@
 [tool.poetry]
 name = "ynab-memo-parser"
 version = "0.0.0"
-description = ""
+description = "Library to parse & update memo and/or payee information in YNAB transactions"
 authors = ["Daniel Basta <ynab@basta.info>"]
 readme = "README.md"
+license = 'MIT'
+packages = [{include = 'ynabmemoparser'}]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
 
 [tool.poetry.dependencies]
 python = '>=3.8,<4.0'
