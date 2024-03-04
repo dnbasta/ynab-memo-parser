@@ -2,7 +2,8 @@ from typing import List
 
 import requests
 
-from ynabmemoparser.models.category import CategoryGroup
+from ynabmemoparser.models.category import Category
+from ynabmemoparser.models.payee import Payee
 
 YNAB_BASE_URL = 'https://api.ynab.com/v1'
 
@@ -14,10 +15,19 @@ class Client:
 		self._budget = budget
 		self._account = account
 
-	def fetch_categories(self) -> List[CategoryGroup]:
+	def fetch_categories(self) -> List[Category]:
 		r = requests.get(f'{YNAB_BASE_URL}/budgets/{self._budget}/categories', headers=self._header)
 		r.raise_for_status()
 
 		data = r.json()['data']['category_groups']
-		category_groups = [CategoryGroup.from_dict(cg) for cg in data if cg['deleted'] is False]
-		return category_groups
+		categories = [Category(id=c['id'], name=c['name'], group_name=cg['name'])
+						   for cg in data for c in cg['categories'] if cg['deleted'] is False and c['deleted'] is False]
+		return categories
+
+	def fetch_payees(self) -> List[Payee]:
+		r = requests.get(f'{YNAB_BASE_URL}/budgets/{self._budget}/payees', headers=self._header)
+		r.raise_for_status()
+
+		data = r.json()['data']['payees']
+		payees = [Payee.from_dict(p) for p in data if p['deleted'] is False]
+		return payees

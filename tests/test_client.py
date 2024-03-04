@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 from requests import Response
 
 from ynabmemoparser.client import Client
+from ynabmemoparser.models.payee import Payee
 
 
 @patch('ynabmemoparser.client.requests.get')
@@ -22,10 +23,26 @@ def test_fetch_categories(get_patch):
 
 	# Assert
 	assert len(cats) == 1
-	assert cats[0].id == 'cg_id'
-	assert cats[0].name == 'cg_name'
+	assert cats[0].id == 'c_id'
+	assert cats[0].name == 'c_name'
+	assert cats[0].group_name == 'cg_name'
 
-	cs = list(cats[0].categories)
-	assert len(cs) == 1
-	assert cs[0].id == 'c_id'
-	assert cs[0].name == 'c_name'
+
+@patch('ynabmemoparser.client.requests.get')
+def test_fetch_payees(mock_get):
+	# Arrange
+	resp = MagicMock(spec=Response)
+	resp.json.return_value = {'data': {'payees': [{
+		'id': 'p_id', 'name': 'p_name', 'deleted': False, 'transfer_account_id': 't_id'}]}}
+	mock_get.return_value = resp
+
+	# Act
+	c = Client(token=MagicMock(), budget=MagicMock(), account=MagicMock())
+	p_list = c.fetch_payees()
+
+	# Assert
+	assert len(p_list) == 1
+	assert isinstance(p_list[0], Payee)
+	assert p_list[0].name == 'p_name'
+	assert p_list[0].id == 'p_id'
+	assert p_list[0].transfer_account_id == 't_id'
