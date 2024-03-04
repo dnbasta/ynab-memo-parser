@@ -19,5 +19,5 @@ class Client:
 		r.raise_for_status()
 
 		data = r.json()['data']['category_groups']
-		category_groups = [CategoryGroup.from_dict(cg) for cg in data]
+		category_groups = [CategoryGroup.from_dict(cg) for cg in data if cg['deleted'] is False]
 		return category_groups
