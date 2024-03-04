@@ -5,3 +5,7 @@ class NoMatchingCategoryError(Exception):
 
 class MultipleMatchingCategoriesError(Exception):
 	pass
+
+
+class NoMatchingPayeeError(Exception):
+	pass

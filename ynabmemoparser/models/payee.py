@@ -1,11 +1,12 @@
 from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass(frozen=True)
 class Payee:
 	name: str
 	id: str
-	transfer_account_id: str
+	transfer_account_id: Optional[str]
 
 	@classmethod
 	def from_dict(cls, p_dict: dict):
