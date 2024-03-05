@@ -4,6 +4,7 @@ import requests
 
 from ynabmemoparser.models.category import Category
 from ynabmemoparser.models.payee import Payee
+from ynabmemoparser.models.transaction import Transaction
 
 YNAB_BASE_URL = 'https://api.ynab.com/v1'
 
@@ -31,3 +32,20 @@ class Client:
 		data = r.json()['data']['payees']
 		payees = [Payee.from_dict(p) for p in data if p['deleted'] is False]
 		return payees
+
+	def fetch_transaction_dicts(self) -> List[dict]:
+		r = requests.get(f'{YNAB_BASE_URL}/budgets/{self._budget}/accounts/{self._account}/transactions', headers=self._header)
+		r.raise_for_status()
+
+		data = r.json()['data']['transactions']
+		transaction_dicts = [t for t in data if t['deleted'] is False]
+		return transaction_dicts
+
+	def update_transactions(self, transactions: List[Transaction]) -> int:
+		update_dict = {'transactions': [r.as_dict() for r in transactions]}
+		r = requests.patch(f'{YNAB_BASE_URL}/budgets/{self._budget}/transactions',
+						   json=update_dict,
+						   headers=self._header)
+		r.raise_for_status()
+		r_dict = r.json()['data']['transaction_ids']
+		return len(r_dict)
