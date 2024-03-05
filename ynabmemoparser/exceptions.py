@@ -9,3 +9,7 @@ class MultipleMatchingCategoriesError(Exception):
 
 class NoMatchingPayeeError(Exception):
 	pass
+
+
+class ExistingSubTransactionError(Exception):
+	pass

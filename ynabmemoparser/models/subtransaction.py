@@ -1,12 +1,18 @@
 from dataclasses import dataclass
-from typing import Literal
 
 from ynabmemoparser.models.category import Category
+from ynabmemoparser.models.payee import Payee
 
 
 @dataclass
 class SubTransaction:
-	payee_name: str
+	payee: Payee
 	category: Category
+	memo: str
 	amount: int
-	flag_color: Literal['red', 'green', 'blue', 'orange', 'purple', 'yellow']
+
+	def as_dict(self) -> dict:
+		return dict(payee_id=self.payee.id,
+					category_id=self.category.id,
+					amount=self.amount,
+					memo=self.memo)
