@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from datetime import date, datetime
-from typing import Literal, List, FrozenSet
+from datetime import date
+from typing import Literal, FrozenSet
 
 from ynabmemoparser.models.category import Category
 from ynabmemoparser.models.payee import Payee
