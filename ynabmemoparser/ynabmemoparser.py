@@ -22,9 +22,7 @@ class YnabMemoParser:
 		self.parser = parser_class(category_repo=self.category_repo, payee_repo=self.payee_repo)
 
 	def fetch_transactions(self) -> List[OriginalTransaction]:
-		transaction_dicts = self._client.fetch_transaction_dicts()
-		transactions = [OriginalTransaction.from_dict(t) for t in transaction_dicts]
-		return transactions
+		return self._client.fetch_transactions()
 
 	def parse_transactions(self, transactions: List[OriginalTransaction]) -> List[Transaction]:
 		transactions = [Transaction.from_original_transaction(t) for t in transactions]
