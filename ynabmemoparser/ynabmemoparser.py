@@ -18,9 +18,7 @@ class YnabMemoParser:
 		self._budget = budget
 		self._account = account
 		self._client = Client(token=token, budget=budget, account=account)
-		self.category_repo = CategoryRepo(self._client)
-		self.payee_repo = PayeeRepo(self._client)
-		self.parser = parser_class(category_repo=self.category_repo, payee_repo=self.payee_repo)
+		self.parser = parser_class(categories=CategoryRepo(self._client), payees=PayeeRepo(self._client))
 
 	def fetch_transactions(self) -> List[OriginalTransaction]:
 		return self._client.fetch_transactions()
