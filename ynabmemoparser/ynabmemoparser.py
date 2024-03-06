@@ -1,11 +1,11 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Type
 
-import requests
-
+from ynabmemoparser.client import Client
 from ynabmemoparser.parser import Parser
-from ynabmemoparser.recordbuilder import RecordBuilder
-from ynabmemoparser.ynabrecord import YnabRecord
+from ynabmemoparser.models.transaction import OriginalTransaction, Transaction
+from ynabmemoparser.repos.categoryrepo import CategoryRepo
+from ynabmemoparser.repos.payeerepo import PayeeRepo
 
 YNAB_BASE_URL = 'https://api.youneedabudget.com/v1'
 
@@ -13,29 +13,24 @@ YNAB_BASE_URL = 'https://api.youneedabudget.com/v1'
 @dataclass
 class YnabMemoParser:
 
-	def __init__(self, budget: str, account: str, token: str) -> None:
+	def __init__(self, budget: str, account: str, token: str, parser_class: Type[Parser]) -> None:
 		self._budget = budget
 		self._account = account
-		self._header = {'Authorization': f'Bearer {token}'}
+		self._client = Client(token=token, budget=budget, account=account)
+		self.category_repo = CategoryRepo(self._client)
+		self.payee_repo = PayeeRepo(self._client)
+		self.parser = parser_class(category_repo=self.category_repo, payee_repo=self.payee_repo)
 
-	def fetch_record_dicts(self) -> List[dict]:
-		r = requests.get(f'{YNAB_BASE_URL}/budgets/{self._budget}/accounts/{self._account}/transactions',
-						 headers=self._header)
-		r.raise_for_status()
-		transactions_dict = r.json()['data']['transactions']
-		return transactions_dict
+	def fetch_transactions(self) -> List[OriginalTransaction]:
+		transaction_dicts = self._client.fetch_transaction_dicts()
+		transactions = [OriginalTransaction.from_dict(t) for t in transaction_dicts]
+		return transactions
 
-	@staticmethod
-	def parse_records(records_dicts: List[dict], parser: Parser) -> List[YnabRecord]:
-		rb = RecordBuilder(parser=parser)
-		parsed_records = [rb.build(t) for t in records_dicts]
-		return parsed_records
+	def parse_transactions(self, transactions: List[OriginalTransaction]) -> List[Transaction]:
+		transactions = [Transaction.from_original_transaction(t) for t in transactions]
+		parsed_transactions = [self.parser.parse(t) for t in transactions]
+		filtered_parsed_transactions = [t for t in parsed_transactions if t.changed()]
+		return filtered_parsed_transactions
 
-	def update_records(self, ynab_records: List[YnabRecord]) -> int:
-		update_dict = {'transactions': [r.as_dict() for r in ynab_records]}
-		r = requests.patch(f'{YNAB_BASE_URL}/budgets/{self._budget}/transactions',
-						   json=update_dict,
-						   headers=self._header)
-		r.raise_for_status()
-		r_dict = r.json()['data']['transaction_ids']
-		return len(r_dict)
+	def update_transactions(self, transactions: List[Transaction]) -> int:
+		return self._client.update_transactions(transactions)
