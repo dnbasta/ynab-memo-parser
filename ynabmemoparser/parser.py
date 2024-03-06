@@ -1,12 +1,16 @@
 from abc import abstractmethod
 
+from ynabmemoparser.models.transaction import Transaction
+from ynabmemoparser.repos.categoryrepo import CategoryRepo
+from ynabmemoparser.repos.payeerepo import PayeeRepo
+
 
 class Parser:
 
-	@abstractmethod
-	def parse_payee(self, original_payee: str, current_payee: str, original_memo: str, current_memo: str) -> str:
-		pass
+	def __init__(self, category_repo: CategoryRepo, payee_repo=PayeeRepo):
+		self.category_repo = category_repo
+		self.payee_repo = payee_repo
 
 	@abstractmethod
-	def parse_memo(self, original_payee: str, current_payee: str, original_memo: str, current_memo: str) -> str:
+	def parse(self, transaction: Transaction) -> Transaction:
 		pass
