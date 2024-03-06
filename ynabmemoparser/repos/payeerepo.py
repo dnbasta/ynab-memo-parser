@@ -18,7 +18,7 @@ class PayeeRepo:
 
 	def fetch_payee_by_id(self, payee_id: str) -> Payee:
 		try:
-			return next(p for p in self._payees if p.name == payee_id)
+			return next(p for p in self._payees if p.id == payee_id)
 		except StopIteration:
 			raise NoMatchingPayeeError(f"No payee with id '{payee_id}")
 
