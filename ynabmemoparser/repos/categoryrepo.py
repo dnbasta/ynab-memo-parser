@@ -9,7 +9,7 @@ class CategoryRepo:
 		self._categories = client.fetch_categories()
 
 	def fetch_by_name(self, category_name: str, group_name: str = None) -> Category:
-		cats = [c for c in self._categories if category_name == c.name]
+		cats = [c for cg in self._categories for c in cg.categories if category_name == c.name]
 
 		if group_name:
 			cats = [c for c in cats if c.name == group_name]
@@ -22,6 +22,6 @@ class CategoryRepo:
 
 	def fetch_by_id(self, category_id: str) -> Category:
 		try:
-			return next(c for c in self._categories if c.id == category_id)
+			return next(c for cg in self._categories for c in cg.categories if c.id == category_id)
 		except StopIteration:
 			raise NoMatchingCategoryError(category_id)

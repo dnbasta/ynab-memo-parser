@@ -3,6 +3,7 @@ from typing import List
 import requests
 
 from ynabmemoparser.models.category import Category
+from ynabmemoparser.models.categorygroup import CategoryGroup
 from ynabmemoparser.models.payee import Payee
 from ynabmemoparser.models.transaction import Transaction
 
@@ -16,13 +17,12 @@ class Client:
 		self._budget = budget
 		self._account = account
 
-	def fetch_categories(self) -> List[Category]:
+	def fetch_categories(self) -> List[CategoryGroup]:
 		r = requests.get(f'{YNAB_BASE_URL}/budgets/{self._budget}/categories', headers=self._header)
 		r.raise_for_status()
 
 		data = r.json()['data']['category_groups']
-		categories = [Category(id=c['id'], name=c['name'], group_name=cg['name'])
-						   for cg in data for c in cg['categories'] if cg['deleted'] is False and c['deleted'] is False]
+		categories = [CategoryGroup.from_dict(cg) for cg in data if cg['deleted'] is False]
 		return categories
 
 	def fetch_payees(self) -> List[Payee]:
