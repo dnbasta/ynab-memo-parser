@@ -2,8 +2,9 @@ from dataclasses import dataclass
 from typing import List, Type
 
 from ynabmemoparser.client import Client
+from ynabmemoparser.models.transaction import Transaction
 from ynabmemoparser.parser import Parser
-from ynabmemoparser.models.transaction import OriginalTransaction, Transaction
+from ynabmemoparser.models.parsedtransaction import ParsedTransaction
 from ynabmemoparser.repos.categoryrepo import CategoryRepo
 from ynabmemoparser.repos.payeerepo import PayeeRepo
 
@@ -21,14 +22,14 @@ class YnabMemoParser:
 		self.payee_repo = PayeeRepo(self._client)
 		self.parser = parser_class(category_repo=self.category_repo, payee_repo=self.payee_repo)
 
-	def fetch_transactions(self) -> List[OriginalTransaction]:
+	def fetch_transactions(self) -> List[Transaction]:
 		return self._client.fetch_transactions()
 
-	def parse_transactions(self, transactions: List[OriginalTransaction]) -> List[Transaction]:
-		transactions = [Transaction.from_original_transaction(t) for t in transactions]
+	def parse_transactions(self, transactions: List[Transaction]) -> List[ParsedTransaction]:
+		transactions = [ParsedTransaction.from_original_transaction(t) for t in transactions]
 		parsed_transactions = [self.parser.parse(t) for t in transactions]
 		filtered_parsed_transactions = [t for t in parsed_transactions if t.changed()]
 		return filtered_parsed_transactions
 
-	def update_transactions(self, transactions: List[Transaction]) -> int:
+	def update_transactions(self, transactions: List[ParsedTransaction]) -> int:
 		return self._client.update_transactions(transactions)

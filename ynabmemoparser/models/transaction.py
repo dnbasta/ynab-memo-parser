@@ -1,56 +1,44 @@
 from dataclasses import dataclass
 from datetime import date, datetime
-from typing import List, Literal, Union
+from typing import Literal, FrozenSet
 
-from ynabmemoparser.exceptions import ExistingSubTransactionError
 from ynabmemoparser.models.category import Category
-from ynabmemoparser.models.originaltransaction import OriginalTransaction
 from ynabmemoparser.models.payee import Payee
 from ynabmemoparser.models.subtransaction import SubTransaction
 
 
-@dataclass
+@dataclass(frozen=True)
 class Transaction:
-	original: OriginalTransaction
+	id: str
 	transaction_date: date
 	category: Category
+	amount: int
 	memo: str
 	payee: Payee
-	flag_color: Union[Literal['red', 'green', 'blue', 'orange', 'purple', 'yellow'], None]
-	subtransactions: List[SubTransaction]
+	flag_color: Literal['red', 'green', 'blue', 'orange', 'purple', 'yellow']
+	original_memo: str
+	original_payee: str
+	subtransactions: FrozenSet[SubTransaction]
 
 	@classmethod
-	def from_original_transaction(cls, original_transaction: OriginalTransaction):
-		return cls(original=original_transaction,
-				   transaction_date=original_transaction.transaction_date,
-				   category=original_transaction.category,
-				   payee=original_transaction.payee,
-				   memo=original_transaction.memo,
-				   flag_color=original_transaction.flag_color,
-				   subtransactions=list(original_transaction.subtransactions))
+	def from_dict(cls, t_dict: dict) -> 'Transaction':
+		def build_subtransaction(s_dict: dict) -> SubTransaction:
+			st_category = Category(id=s_dict['category_id'], name=s_dict['category_name'])
+			st_payee = Payee(id=s_dict['payee_id'], name=s_dict['payee_name'], transfer_account_id=s_dict['transfer_account_id'])
+			return SubTransaction(payee=st_payee,
+								  category=st_category,
+								  amount=s_dict['amount'],
+								  memo=s_dict['memo'])
 
-	def changed(self) -> bool:
-		if (self.payee != self.original.payee
-				or self.transaction_date != self.original.transaction_date
-				or self.category != self.original.category
-				or self.memo != self.original.memo
-				or self.flag_color != self.original.flag_color):
-			return True
-
-		if len(self.subtransactions) > 0:
-			if len(self.original.subtransactions) > 0:
-				raise ExistingSubTransactionError(f"Existing Subtransactions can not be updated", self)
-			return True
-		return False
-
-	def as_dict(self) -> dict:
-		t_dict = dict(id=self.original.id,
-					memo=self.memo,
-					payee_name=self.payee.name,
-					payee_id=self.payee.id,
-					category_id=self.category.id,
-					flag_color=self.flag_color,
-					date=datetime.strftime(self.transaction_date, '%Y-%m-%d'))
-		if len(self.subtransactions) > 0 & len(self.original.subtransactions) == 0:
-			t_dict = {**t_dict, 'subtransactions': [s.as_dict() for s in self.subtransactions]}
-		return t_dict
+		category = Category(id=t_dict['category_id'], name=t_dict['category_name'])
+		payee = Payee(id=t_dict['payee_id'], name=t_dict['payee_name'], transfer_account_id=t_dict['transfer_account_id'])
+		return Transaction(id=t_dict['id'],
+						   transaction_date=datetime.strptime(t_dict['date'], '%Y-%m-%d'),
+						   category=category,
+						   memo=t_dict['memo'],
+						   original_memo=t_dict['import_payee_name_original'],
+						   original_payee=t_dict['import_payee_name'],
+						   flag_color=t_dict['flag_color'],
+						   payee=payee,
+						   subtransactions=frozenset([build_subtransaction(st) for st in t_dict['subtransactions']]),
+						   amount=t_dict['amount'])

@@ -1,6 +1,6 @@
 from abc import abstractmethod
 
-from ynabmemoparser.models.transaction import Transaction
+from ynabmemoparser.models.parsedtransaction import ParsedTransaction
 from ynabmemoparser.repos.categoryrepo import CategoryRepo
 from ynabmemoparser.repos.payeerepo import PayeeRepo
 
@@ -12,5 +12,5 @@ class Parser:
 		self.payee_repo = payee_repo
 
 	@abstractmethod
-	def parse(self, transaction: Transaction) -> Transaction:
+	def parse(self, transaction: ParsedTransaction) -> ParsedTransaction:
 		pass
