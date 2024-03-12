@@ -6,6 +6,14 @@ from ynabmemoparser.models.payee import Payee
 
 @dataclass
 class SubTransaction:
+	"""YNAB Subtransaction object for creating split transactions. To be used as element in subtransaction attribute of
+	Transaction class
+
+	:ivar category: The category of the subtransaction
+	:ivar payee: The payee of the subtransaction
+	:ivar amount: The amount of the subtransaction in milliunits
+	:ivar memo: The memo of the subtransaction
+	"""
 	payee: Payee
 	category: Category
 	memo: str

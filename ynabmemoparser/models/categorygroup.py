@@ -6,6 +6,11 @@ from ynabmemoparser.models.category import Category
 
 @dataclass(frozen=True)
 class CategoryGroup:
+	"""Represents a YNAB category group in the budget
+
+	:ivar name: The name of the category group
+	:ivar categories: The categories in the category group
+	"""
 	name: str
 	categories: FrozenSet[Category]
 

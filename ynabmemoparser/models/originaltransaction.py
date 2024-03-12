@@ -9,6 +9,18 @@ from ynabmemoparser.models.originalsubtransaction import OriginalSubTransaction
 
 @dataclass(frozen=True)
 class OriginalTransaction:
+	"""Represents original transaction from YNAB
+
+	:ivar id: The original transaction id
+	:ivar amount: The transaction amount in milliunits format
+	:ivar category: The category of the original transaction
+	:ivar transaction_date: The date of the original transaction
+	:ivar memo: The memo of the original transaction
+	:ivar payee: The payee of the original transaction
+	:ivar flag_color: The flag color of the original transaction
+	:ivar import_payee_name: The payee as recorded by YNAB on import
+	:ivar import_payee_name_original: The original payee or memo as recorded by the bank
+	"""
 	id: str
 	transaction_date: date
 	category: Category
@@ -16,8 +28,8 @@ class OriginalTransaction:
 	memo: str
 	payee: Payee
 	flag_color: Literal['red', 'green', 'blue', 'orange', 'purple', 'yellow']
-	original_memo: str
-	original_payee: str
+	import_payee_name_original: str
+	import_payee_name: str
 	subtransactions: FrozenSet[OriginalSubTransaction]
 
 	@classmethod
@@ -36,8 +48,8 @@ class OriginalTransaction:
 								   transaction_date=datetime.strptime(t_dict['date'], '%Y-%m-%d'),
 								   category=category,
 								   memo=t_dict['memo'],
-								   original_memo=t_dict['import_payee_name_original'],
-								   original_payee=t_dict['import_payee_name'],
+								   import_payee_name_original=t_dict['import_payee_name_original'],
+								   import_payee_name=t_dict['import_payee_name'],
 								   flag_color=t_dict['flag_color'],
 								   payee=payee,
 								   subtransactions=frozenset([build_subtransaction(st) for st in t_dict['subtransactions']]),

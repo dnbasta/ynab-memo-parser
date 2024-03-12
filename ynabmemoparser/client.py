@@ -11,6 +11,12 @@ YNAB_BASE_URL = 'https://api.ynab.com/v1'
 
 
 class Client:
+	"""Client for reading from and writing to YNAB
+
+	:param token: YNAB API token
+	:param budget: YNAB budget ID
+	:param account: YNAB account ID
+	"""
 
 	def __init__(self, token: str, budget: str, account: str):
 		self._header = {'Authorization': f'Bearer {token}'}
@@ -18,6 +24,7 @@ class Client:
 		self._account = account
 
 	def fetch_categories(self) -> List[CategoryGroup]:
+		"""Fetches categories from YNAB"""
 		r = requests.get(f'{YNAB_BASE_URL}/budgets/{self._budget}/categories', headers=self._header)
 		r.raise_for_status()
 
@@ -26,6 +33,7 @@ class Client:
 		return categories
 
 	def fetch_payees(self) -> List[Payee]:
+		"""Fetches payees from YNAB"""
 		r = requests.get(f'{YNAB_BASE_URL}/budgets/{self._budget}/payees', headers=self._header)
 		r.raise_for_status()
 
@@ -34,6 +42,7 @@ class Client:
 		return payees
 
 	def fetch_transactions(self) -> List[OriginalTransaction]:
+		"""Fetches transactions from YNAB"""
 		r = requests.get(f'{YNAB_BASE_URL}/budgets/{self._budget}/accounts/{self._account}/transactions', headers=self._header)
 		r.raise_for_status()
 
@@ -43,6 +52,7 @@ class Client:
 		return transactions
 
 	def update_transactions(self, transactions: List[Transaction]) -> int:
+		"""Updates transactions in YNAB"""
 		update_dict = {'transactions': [r.as_dict() for r in transactions]}
 		r = requests.patch(f'{YNAB_BASE_URL}/budgets/{self._budget}/transactions',
 						   json=update_dict,

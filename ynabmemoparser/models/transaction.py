@@ -11,6 +11,17 @@ from ynabmemoparser.models.payee import Payee
 
 @dataclass
 class Transaction:
+	"""Transaction object prefilled with values from original transaction which can take modified values
+
+	:ivar category: The category of the transaction
+	:ivar transaction_date: The date of the transaction
+	:ivar memo: The memo of the transaction
+	:ivar payee: The payee of the transaction
+	:ivar flag_color: The flag color of the transaction
+	:ivar subtransactions: The subtransactions of the transaction
+	:ivar original: the original transaction
+	"""
+
 	original: OriginalTransaction
 	transaction_date: date
 	category: Category
@@ -30,6 +41,10 @@ class Transaction:
 				   subtransactions=[])
 
 	def changed(self) -> bool:
+		"""Helper function to determine if transaction has been altered as compared to original one
+
+		:returns: True if values from original transaction have been altered, False otherwise
+		"""
 		if (self.payee != self.original.payee
 				or self.transaction_date != self.original.transaction_date
 				or self.category != self.original.category
@@ -44,6 +59,7 @@ class Transaction:
 		return False
 
 	def as_dict(self) -> dict:
+		"""Returns a dictionary representation of the transaction"""
 		t_dict = dict(id=self.original.id,
 					memo=self.memo,
 					payee_name=self.payee.name,
