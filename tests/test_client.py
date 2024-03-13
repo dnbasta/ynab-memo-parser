@@ -23,9 +23,9 @@ def test_fetch_categories(get_patch):
 
 	# Assert
 	assert len(cats) == 1
-	assert cats[0].id == 'c_id'
-	assert cats[0].name == 'c_name'
-	assert cats[0].group_name == 'cg_name'
+	assert cats[0].name == 'cg_name'
+	assert list(cats[0].categories)[0].name == 'c_name'
+	assert list(cats[0].categories)[0].id == 'c_id'
 
 
 @patch('ynabmemoparser.client.requests.get')
