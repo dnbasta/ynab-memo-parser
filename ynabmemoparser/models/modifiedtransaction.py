@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from ynabmemoparser.exceptions import ExistingSubTransactionError
-from ynabmemoparser.models import TransactionModifier, OriginalTransaction
-
+from ynabmemoparser.models.originaltransaction import OriginalTransaction
+from ynabmemoparser.models.transactionmodifier import TransactionModifier
 
 @dataclass
 class ModifiedTransaction:

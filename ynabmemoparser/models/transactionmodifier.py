@@ -2,10 +2,10 @@ from dataclasses import dataclass
 from datetime import date
 from typing import List, Literal, Union
 
-from ynabmemoparser.models import Category
-from ynabmemoparser.models import OriginalTransaction
-from ynabmemoparser.models import SubTransaction
-from ynabmemoparser.models import Payee
+from ynabmemoparser.models.category import Category
+from ynabmemoparser.models.originaltransaction import OriginalTransaction
+from ynabmemoparser.models.subtransaction import SubTransaction
+from ynabmemoparser.models.payee import Payee
 
 
 @dataclass

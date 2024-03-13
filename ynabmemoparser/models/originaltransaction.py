@@ -1,10 +1,10 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from datetime import date, datetime
 from typing import Literal, FrozenSet
 
-from ynabmemoparser.models import Category
-from ynabmemoparser.models import Payee
-from ynabmemoparser.models import OriginalSubTransaction
+from ynabmemoparser.models.category import Category
+from ynabmemoparser.models.payee import Payee
+from ynabmemoparser.models.originalsubtransaction import OriginalSubTransaction
 
 
 @dataclass(frozen=True)
@@ -54,3 +54,6 @@ class OriginalTransaction:
 								   payee=payee,
 								   subtransactions=frozenset([build_subtransaction(st) for st in t_dict['subtransactions']]),
 								   amount=t_dict['amount'])
+
+	def as_dict(self) -> dict:
+		return asdict(self)

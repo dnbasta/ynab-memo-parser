@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import FrozenSet
 
-from ynabmemoparser.models import Category
+from ynabmemoparser.models.category import Category
 
 
 @dataclass(frozen=True)
