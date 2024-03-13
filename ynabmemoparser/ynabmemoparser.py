@@ -58,14 +58,6 @@ class YnabMemoParser:
 		[t.raise_on_invalid() for t in modified_transactions]
 		return modified_transactions
 
-	@staticmethod
-	def _check_change_exceptions(mt: ModifiedTransaction) -> ModifiedTransaction:
-		try:
-			mt.changed()
-			return mt
-		except Exception as e:
-			raise e
-
 	def update_transactions(self, transactions: List[ModifiedTransaction]) -> int:
 		"""Filters list of modified transactions for actual changes and updates the respective transactions in YNAB
 
