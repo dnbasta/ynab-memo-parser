@@ -19,10 +19,12 @@ class CategoryRepo:
 		:raises NoMatchingCategoryError: if no matching category is found
 		:raises MultipleMatchingCategoriesError: if multiple matching categories are found
 		"""
-		cats = [c for cg in self._categories for c in cg.categories if category_name == c.name]
-
 		if group_name:
-			cats = [c for c in cats if c.name == group_name]
+			cat_groups = [c for c in self._categories if c.name == group_name]
+		else:
+			cat_groups = self._categories
+
+		cats = [c for cg in cat_groups for c in cg.categories if category_name == c.name]
 
 		if len(cats) == 1:
 			return cats[0]
