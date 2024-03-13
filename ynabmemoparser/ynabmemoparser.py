@@ -3,9 +3,9 @@ from typing import List, Type
 from ynabmemoparser.client import Client
 from ynabmemoparser.models import OriginalTransaction
 from ynabmemoparser.parser import Parser
-from ynabmemoparser.models.transaction import Transaction
-from ynabmemoparser.repos.categoryrepo import CategoryRepo
-from ynabmemoparser.repos.payeerepo import PayeeRepo
+from ynabmemoparser.models import TransactionModifier
+from ynabmemoparser.repos import CategoryRepo
+from ynabmemoparser.repos import PayeeRepo
 
 YNAB_BASE_URL = 'https://api.youneedabudget.com/v1'
 
@@ -33,18 +33,18 @@ class YnabMemoParser:
 		"""
 		return self._client.fetch_transactions()
 
-	def parse_transactions(self, transactions: List[OriginalTransaction]) -> List[Transaction]:
+	def parse_transactions(self, transactions: List[OriginalTransaction]) -> List[TransactionModifier]:
 		"""Parses original transactions and returns modified transactions
 
 		:param transactions: list of original transactions from YNAB
 		:return: list of modified YNAB transactions
 		"""
-		transactions = [Transaction.from_original_transaction(t) for t in transactions]
+		transactions = [TransactionModifier.from_original_transaction(t) for t in transactions]
 		parsed_transactions = [self.parser.parse(t) for t in transactions]
 		filtered_parsed_transactions = [t for t in parsed_transactions if t.changed()]
 		return filtered_parsed_transactions
 
-	def update_transactions(self, transactions: List[Transaction]) -> int:
+	def update_transactions(self, transactions: List[TransactionModifier]) -> int:
 		"""Updates the transactions in YNAB
 
 		:param transactions: List of modified transactions to update in YNAB

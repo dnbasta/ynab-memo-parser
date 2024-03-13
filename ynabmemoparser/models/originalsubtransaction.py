@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-from ynabmemoparser.models.category import Category
-from ynabmemoparser.models.payee import Payee
+from ynabmemoparser.models import Category
+from ynabmemoparser.models import Payee
 
 
 @dataclass(frozen=True)

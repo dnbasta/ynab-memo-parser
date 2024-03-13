@@ -1,8 +1,8 @@
 from abc import abstractmethod
 
-from ynabmemoparser.models.transaction import Transaction
-from ynabmemoparser.repos.categoryrepo import CategoryRepo
-from ynabmemoparser.repos.payeerepo import PayeeRepo
+from ynabmemoparser.models import TransactionModifier
+from ynabmemoparser.repos import CategoryRepo
+from ynabmemoparser.repos import PayeeRepo
 
 
 class Parser:
@@ -18,7 +18,7 @@ class Parser:
 		self.payees: PayeeRepo = payees
 
 	@abstractmethod
-	def parse(self, transaction: Transaction) -> Transaction:
+	def parse(self, transaction: TransactionModifier) -> TransactionModifier:
 		"""Function which implements the actual modification of a transaction. It is initiated and called by the library
 		for all transactions provided in the parse_transaction method of the main class.
 

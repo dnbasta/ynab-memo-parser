@@ -13,7 +13,7 @@
 
 ::: models.OriginalTransaction
 ::: models.OriginalSubTransaction
-::: models.Transaction
+::: models.TransactionModifier
 ::: models.SubTransaction
 
 ## Category

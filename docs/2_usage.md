@@ -36,15 +36,16 @@ with a `Transaction` object which you can modify to your liking and return.
 
 ```py
 from ynabmemoparser import Parser
-from ynabmemoparser.models import Transaction
+from ynabmemoparser.models import TransactionModifier
+
 
 class MyParser(Parser):
 
-    def parse(self, transaction: Transaction) -> Transaction:
-        # your implementation
-        
-        # return your altered transaction
-        return transaction
+	def parse(self, transaction: TransactionModifier) -> TransactionModifier:
+		# your implementation
+
+		# return your altered transaction
+		return transaction
 ```
 The parser has two attributes which you can use for manipulating category and payee of the transaction. 
 E.g. you can fetch a [`Category`][models.Category] via the `categories` attribute in the parser class. You can either 

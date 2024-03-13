@@ -4,4 +4,4 @@ from .categorygroup import CategoryGroup
 from .originalsubtransaction import OriginalSubTransaction
 from .payee import Payee
 from .subtransaction import SubTransaction
-from .transaction import Transaction
+from .transactionmodifier import TransactionModifier

@@ -2,7 +2,7 @@ from typing import List
 
 from ynabmemoparser.client import Client
 from ynabmemoparser.exceptions import NoMatchingPayeeError
-from ynabmemoparser.models.payee import Payee
+from ynabmemoparser.models import Payee
 
 
 class PayeeRepo:

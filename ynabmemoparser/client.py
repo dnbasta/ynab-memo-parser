@@ -2,10 +2,10 @@ from typing import List
 
 import requests
 
-from ynabmemoparser.models.categorygroup import CategoryGroup
-from ynabmemoparser.models.originaltransaction import OriginalTransaction
-from ynabmemoparser.models.payee import Payee
-from ynabmemoparser.models.transaction import Transaction
+from ynabmemoparser.models import CategoryGroup
+from ynabmemoparser.models import OriginalTransaction
+from ynabmemoparser.models import Payee
+from ynabmemoparser.models import TransactionModifier
 
 YNAB_BASE_URL = 'https://api.ynab.com/v1'
 
@@ -51,7 +51,7 @@ class Client:
 		transactions = [OriginalTransaction.from_dict(t) for t in transaction_dicts]
 		return transactions
 
-	def update_transactions(self, transactions: List[Transaction]) -> int:
+	def update_transactions(self, transactions: List[TransactionModifier]) -> int:
 		"""Updates transactions in YNAB"""
 		update_dict = {'transactions': [r.as_dict() for r in transactions]}
 		r = requests.patch(f'{YNAB_BASE_URL}/budgets/{self._budget}/transactions',
