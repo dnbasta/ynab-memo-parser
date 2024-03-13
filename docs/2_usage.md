@@ -32,64 +32,56 @@ list_of_transactions = ynab_memo_parser.fetch_transactions()
 
 ### 2. Create a `Parser` child class which implements your logic
 The class needs to implement a `parse()` method which does the actual parsing of a transaction. The method is called
-with a `Transaction` object which you can modify to your liking and return.
+with the [`OriginalTransaction`][models.OriginalTransaction] and a [`TransactionModifier`][models.TransactionModifier] 
+object which is prefilled with values from the original transaction. Its attributes can be modified and it needs to be 
+returned at the end of the function.
 
 ```py
 from ynabmemoparser import Parser
-from ynabmemoparser.models import TransactionModifier
+from ynabmemoparser.models import OriginalTransaction, TransactionModifier
 
 
 class MyParser(Parser):
 
-	def parse(self, transaction: TransactionModifier) -> TransactionModifier:
+	def parse(self, original: OriginalTransaction, modifier: TransactionModifier) -> TransactionModifier:
 		# your implementation
 
-		# return your altered transaction
-		return transaction
+		# return the altered modifier
+		return modifier
 ```
-The parser has two attributes which you can use for manipulating category and payee of the transaction. 
+The parser has two attributes which can be used for manipulating category and payee of the transaction. 
 E.g. you can fetch a [`Category`][models.Category] via the `categories` attribute in the parser class. You can either 
-fetch a category by its name, its id (more robust) or a list of categories by the category group name. 
-Check the [`CategoryRepo`][repos.CategoryRepo] reference for more details
-```py
-class MyParser(Parser):
-
-    def parse(self, transaction: Transaction) -> Transaction:
-        my_category = self.categories.fetch_by_name('my_category')
-        transaction.category = my_category
-        return transaction
-```
-If needed you can also fetch an existing [`Payee`][models.Payee] via the `payees` attribute in the parser class. 
-You can either fetch the payee by its name or its id. 
+fetch a category by its name, its id (more robust) or fetch a list of categories by the category group name. 
+Check the [`CategoryRepo`][repos.CategoryRepo] reference for more details. You can also fetch an existing [`Payee`]
+[models.Payee] via the `payees` attribute in the parser class. You can either fetch the payee by its name or its id. 
 Check the [`PayeeRepo`][repos.PayeeRepo] reference for more details
 ```py
 class MyParser(Parser):
 
-    def parse(self, transaction: Transaction) -> Transaction:
+    def parse(self, original, modifier):
+        my_category = self.categories.fetch_by_name('my_category')
+        modifier.category = my_category
+        
         my_payee = self.categories.fetch_by_name('my_payee')
-        transaction.payee = my_payee
-        return transaction
+        modifier.payee = my_payee
+        
+        return modifier
 ```
-### 3. Test your parser on some records
-Provide your parser class to [`YnabMemoParser`][ynabmemoparser.YnabMemoParser] upon init. The library will initialize your parser and use it inside its
-`parse_transactions()` method.
-```py
-from ynabmemoparser import YnabMemoParser
 
-ynab_memo_parser = YnabMemoParser(token='<token>', 
-                                  budget='<budget>', 
-                                  account='<account>',
-                                  parser_class=MyParser)
-original_transactions = ynab_memo_parser.fetch_transactions()
-parsed_transactions = ynab_memo_parser.parse_transactions(transactions=original_transactions)
+### 3. Test your parser on some records
+Provide your parser class to the `parse()` method of your [`YnabMemoParser`][ynabmemoparser.
+YnabMemoParser] instance. You will get back a list of [`ModifiedTransaction`][models.ModifiedTransaction] objects. 
+Check the changed attributes of the transaction either in your debug tool or call the `as_dict()` helper function of 
+the class.
+```py
+parsed_transactions = ynab_memo_parser.parse_transactions(transactions=list_of_transactions, 
+                                                          parser_class=MyParser)
 ```
-You will get back a list of [`Transaction`][models.Transaction] objects. Check the changed attributes of the 
-transaction either in your debug tool or call the `as_dict()` helper function of the class.
 
 ### 4. Update your records in YNAB
-If you are satisfied with your parsing results you can pass the list of the parsed `Transaction` to the 
-`update_records()` method. It will update the respective transactions in YNAB and return an integer with the number 
+If you are satisfied with your parsing results you can pass the list of the `ModifedTransaction` objects to the 
+`update_records()` method. It will update actually changed transactions in YNAB and return an integer with the number 
 of successfully updated records.
 ```py
-updated_transaction_count = ynab_memo_parser.update_transactions(parsed_transactions)
+updated_transaction_count = ynab_memo_parser.update_transactions(transactions=parsed_transactions)
 ```

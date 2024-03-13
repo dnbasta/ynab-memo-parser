@@ -1,16 +1,14 @@
 from typing import List
 
-from ynabmemoparser.client import Client
 from ynabmemoparser.exceptions import NoMatchingCategoryError, MultipleMatchingCategoriesError
 from ynabmemoparser.models import CategoryGroup
 from ynabmemoparser.models import Category
 
 
 class CategoryRepo:
-	"""Repository which holds all categories from your YNAB budget
-	"""
-	def __init__(self, client: Client):
-		self._categories: List[CategoryGroup] = client.fetch_categories()
+	"""Repository which holds all categories from your YNAB budget"""
+	def __init__(self, categories: List[CategoryGroup]):
+		self._categories = categories
 
 	def fetch_by_name(self, category_name: str, group_name: str = None) -> Category:
 		"""Fetches a YNAB category by its name

@@ -1,6 +1,5 @@
 from typing import List
 
-from ynabmemoparser.client import Client
 from ynabmemoparser.exceptions import NoMatchingPayeeError
 from ynabmemoparser.models import Payee
 
@@ -8,8 +7,8 @@ from ynabmemoparser.models import Payee
 class PayeeRepo:
 	"""Repository which holds all payees from your YNAB budget"""
 
-	def __init__(self, client: Client):
-		self._payees = client.fetch_payees()
+	def __init__(self, payees: List[Payee]):
+		self._payees = payees
 
 	def fetch_payee_by_name(self, payee_name: str) -> Payee:
 		"""Fetches a payee by its name

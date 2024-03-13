@@ -1,7 +1,7 @@
 from typing import List, Type
 
 from ynabmemoparser.client import Client
-from ynabmemoparser.models import OriginalTransaction
+from ynabmemoparser.models import OriginalTransaction, ModifiedTransaction
 from ynabmemoparser.parser import Parser
 from ynabmemoparser.models import TransactionModifier
 from ynabmemoparser.repos import CategoryRepo
@@ -17,14 +17,17 @@ class YnabMemoParser:
 	:param budget: The YNAB budget id to use
 	:param account: The YNAB account id to use
 	:param token: The YNAB token to use
-	:param parser_class: The Parser child class to use
+
+	:ivar categories: Lookup of categories associated with the budget
+	:ivar payees: Lookup of payees associated with the budget
 	"""
 
-	def __init__(self, budget: str, account: str, token: str, parser_class: Type[Parser]) -> None:
+	def __init__(self, budget: str, account: str, token: str) -> None:
 		self._budget = budget
 		self._account = account
 		self._client = Client(token=token, budget=budget, account=account)
-		self.parser = parser_class(categories=CategoryRepo(self._client), payees=PayeeRepo(self._client))
+		self.categories: CategoryRepo = CategoryRepo(self._client.fetch_categories())
+		self.payees: PayeeRepo = PayeeRepo(self._client.fetch_payees())
 
 	def fetch_transactions(self) -> List[OriginalTransaction]:
 		"""
@@ -33,22 +36,42 @@ class YnabMemoParser:
 		"""
 		return self._client.fetch_transactions()
 
-	def parse_transactions(self, transactions: List[OriginalTransaction]) -> List[TransactionModifier]:
-		"""Parses original transactions and returns modified transactions
+	def parse_transactions(self, transactions: List[OriginalTransaction],
+						   parser_class: Type[Parser]) -> List[ModifiedTransaction]:
+		"""Parses original transactions with provided parser class. The method checks for allowed changes
+		and returns a list of the modified transactions
 
 		:param transactions: list of original transactions from YNAB
-		:return: list of modified YNAB transactions
-		"""
-		transactions = [TransactionModifier.from_original_transaction(t) for t in transactions]
-		parsed_transactions = [self.parser.parse(t) for t in transactions]
-		filtered_parsed_transactions = [t for t in parsed_transactions if t.changed()]
-		return filtered_parsed_transactions
+		:param parser_class: The Parser child class to use
+		:return: list of modified transactions
 
-	def update_transactions(self, transactions: List[TransactionModifier]) -> int:
-		"""Updates the transactions in YNAB
+		:raises ExistingSubTransactionError: if original transaction and transaction modifier contain subtransactions
+		since the YNAB API doesn't allow modifying existing split transactions
+		"""
+		parser = parser_class(categories=self.categories, payees=self.payees)
+		transaction_tuples = [(t, TransactionModifier.from_original_transaction(t)) for t in transactions]
+		parsed_transaction_tuples = [(t[0], parser.parse(original=t[0],
+															   modifier=t[1])) for t in transaction_tuples]
+		modified_transactions = [ModifiedTransaction(original_transaction=t[0],
+													 transaction_modifier=t[1]) for t in parsed_transaction_tuples]
+
+		[t.raise_on_invalid() for t in modified_transactions]
+		return modified_transactions
+
+	@staticmethod
+	def _check_change_exceptions(mt: ModifiedTransaction) -> ModifiedTransaction:
+		try:
+			mt.changed()
+			return mt
+		except Exception as e:
+			raise e
+
+	def update_transactions(self, transactions: List[ModifiedTransaction]) -> int:
+		"""Filters list of modified transactions for actual changes and updates the respective transactions in YNAB
 
 		:param transactions: List of modified transactions to update in YNAB
 		:returns: number of updated transactions
 		"""
-		return self._client.update_transactions(transactions)
+		filtered_transactions = [t for t in transactions if t.is_changed()]
+		return self._client.update_transactions(filtered_transactions)
 

@@ -9,21 +9,20 @@
 ::: parser.Parser
     options:
         show_root_full_path: false
-## Transaction
+
+## Repos
+
+::: repos.CategoryRepo
+::: repos.PayeeRepo
+
+## Models
 
 ::: models.OriginalTransaction
 ::: models.OriginalSubTransaction
 ::: models.TransactionModifier
 ::: models.SubTransaction
-
-## Category
-
-::: repos.CategoryRepo
+::: models.ModifiedTransaction
 ::: models.Category
-
-## Payee
-
-::: repos.PayeeRepo
 ::: models.Payee
 
 
