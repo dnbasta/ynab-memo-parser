@@ -11,8 +11,8 @@ class Payee:
 	:ivar transfer_account_id: The ID of the transfer account in case payee is of type "Transfer:[account]"
 	"""
 	name: str
-	id: str
-	transfer_account_id: Optional[str]
+	id: Optional[str] = None
+	transfer_account_id: Optional[str] = None
 
 	@classmethod
 	def from_dict(cls, p_dict: dict):
