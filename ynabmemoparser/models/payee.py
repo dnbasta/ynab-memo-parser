@@ -6,8 +6,8 @@ from typing import Optional
 class Payee:
 	"""Represents a YNAB Payee
 
-	:ivar id: The ID of the payee
 	:ivar name: The name of the payee
+	:ivar id: The ID of the payee
 	:ivar transfer_account_id: The ID of the transfer account in case payee is of type "Transfer:[account]"
 	"""
 	name: str
