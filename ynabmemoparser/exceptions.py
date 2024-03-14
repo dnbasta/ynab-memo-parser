@@ -13,3 +13,7 @@ class NoMatchingPayeeError(Exception):
 
 class ExistingSubTransactionError(Exception):
 	pass
+
+
+class ParserError(Exception):
+	pass

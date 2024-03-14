@@ -1,6 +1,8 @@
+import logging
 from typing import List, Type
 
 from ynabmemoparser.client import Client
+from ynabmemoparser.exceptions import ParserError
 from ynabmemoparser.models import OriginalTransaction, ModifiedTransaction
 from ynabmemoparser.parser import Parser
 from ynabmemoparser.models import TransactionModifier
@@ -45,18 +47,28 @@ class YnabMemoParser:
 		:param parser_class: The Parser child class to use
 		:return: list of modified transactions
 
+		:raises ParserError: if there is an error while executing parser
 		:raises ExistingSubTransactionError: if original transaction and transaction modifier contain subtransactions
 		since the YNAB API doesn't allow modifying existing split transactions
 		"""
 		parser = parser_class(categories=self.categories, payees=self.payees)
-		transaction_tuples = [(t, TransactionModifier.from_original_transaction(t)) for t in transactions]
-		parsed_transaction_tuples = [(t[0], parser.parse(original=t[0],
-															   modifier=t[1])) for t in transaction_tuples]
-		modified_transactions = [ModifiedTransaction(original_transaction=t[0],
-													 transaction_modifier=t[1]) for t in parsed_transaction_tuples]
+		modified_transactions = [self._parse_transaction(original=t, parser=parser) for t in transactions]
+		successfully_parsed = [mt for mt in modified_transactions if mt is not None]
+		return successfully_parsed
 
-		[t.raise_on_invalid() for t in modified_transactions]
-		return modified_transactions
+	@staticmethod
+	def _parse_transaction(original: OriginalTransaction, parser: Parser) -> ModifiedTransaction:
+		modifier = TransactionModifier.from_original_transaction(original_transaction=original)
+		try:
+			modifier_return = parser.parse(original=original, modifier=modifier)
+			if not isinstance(modifier_return, TransactionModifier):
+				raise ParserError(f"Parser {parser.__class__.__name__} doesn't return TransactionModifier object")
+			modified_transaction = ModifiedTransaction(original_transaction=original,
+													 transaction_modifier=modifier_return)
+			modified_transaction.raise_on_invalid()
+			return modified_transaction
+		except Exception as e:
+			raise ParserError(f"Error while parsing {original.as_dict()} with {parser.__class__.__name__}")
 
 	def update_transactions(self, transactions: List[ModifiedTransaction]) -> int:
 		"""Filters list of modified transactions for actual changes and updates the respective transactions in YNAB
@@ -66,4 +78,3 @@ class YnabMemoParser:
 		"""
 		filtered_transactions = [t for t in transactions if t.is_changed()]
 		return self._client.update_transactions(filtered_transactions)
-
