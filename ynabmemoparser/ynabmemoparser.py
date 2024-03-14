@@ -46,7 +46,7 @@ class YnabMemoParser:
 
 		:param transactions: list of original transactions from YNAB
 		:param parser_class: The Parser child class to use
-		:param return_only_changed: If set to True only returns actually changed transactions
+		:param return_only_changed: If set to False returns all transactions no matter whether they were changed or not
 		:return: list of modified transactions
 
 		:raises ParserError: if there is an error while executing parser
