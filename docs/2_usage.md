@@ -69,19 +69,19 @@ class MyParser(Parser):
 ```
 
 ### 3. Test your parser on some records
-Provide your parser class to the `parse()` method of your [`YnabMemoParser`][ynabmemoparser.
-YnabMemoParser] instance. You will get back a list of [`ModifiedTransaction`][models.ModifiedTransaction] objects. 
-Check the changed attributes of the transaction either in your debug tool or call the `as_dict()` helper function of 
-the class.
+Provide a list of [`OriginalTransaction`][models.OriginalTransaction] objects and your parser class to the `parse()` 
+method of your [`YnabMemoParser`][ynabmemoparser.YnabMemoParser] instance. You will get back a list of 
+[`ModifiedTransaction`][models.ModifiedTransaction] objects. Check the changed attributes of the transaction either in 
+your debug tool or call the `as_dict()` helper function of the class.
 ```py
 parsed_transactions = ynab_memo_parser.parse_transactions(transactions=list_of_transactions, 
                                                           parser_class=MyParser)
 ```
 
 ### 4. Update your records in YNAB
-If you are satisfied with your parsing results you can pass the list of the `ModifedTransaction` objects to the 
-`update_records()` method. It will update actually changed transactions in YNAB and return an integer with the number 
-of successfully updated records.
+If you are satisfied with your parsing results you can pass the list of the 
+[`ModifedTransaction`][modelf.ModifiedTransaction] objects to the `update_records()` method. It will update actually 
+changed transactions in YNAB and return an integer with the number of successfully updated records.
 ```py
 updated_transaction_count = ynab_memo_parser.update_transactions(transactions=parsed_transactions)
 ```
