@@ -39,12 +39,14 @@ class YnabMemoParser:
 		return self._client.fetch_transactions()
 
 	def parse_transactions(self, transactions: List[OriginalTransaction],
-						   parser_class: Type[Parser]) -> List[ModifiedTransaction]:
+						   parser_class: Type[Parser],
+						   return_only_changed: bool = True) -> List[ModifiedTransaction]:
 		"""Parses original transactions with provided parser class. The method checks for allowed changes
 		and returns a list of the modified transactions
 
 		:param transactions: list of original transactions from YNAB
 		:param parser_class: The Parser child class to use
+		:param return_only_changed: If set to True only returns actually changed transactions
 		:return: list of modified transactions
 
 		:raises ParserError: if there is an error while executing parser
@@ -53,8 +55,9 @@ class YnabMemoParser:
 		"""
 		parser = parser_class(categories=self.categories, payees=self.payees)
 		modified_transactions = [self._parse_transaction(original=t, parser=parser) for t in transactions]
-		successfully_parsed = [mt for mt in modified_transactions if mt is not None]
-		return successfully_parsed
+		if return_only_changed:
+			modified_transactions = [t for t in modified_transactions if t.is_changed()]
+		return modified_transactions
 
 	@staticmethod
 	def _parse_transaction(original: OriginalTransaction, parser: Parser) -> ModifiedTransaction:
@@ -71,10 +74,9 @@ class YnabMemoParser:
 			raise ParserError(f"Error while parsing {original.as_dict()} with {parser.__class__.__name__}")
 
 	def update_transactions(self, transactions: List[ModifiedTransaction]) -> int:
-		"""Filters list of modified transactions for actual changes and updates the respective transactions in YNAB
+		"""Takes a list of modified transactions and updates the respective transactions in YNAB
 
 		:param transactions: List of modified transactions to update in YNAB
 		:returns: number of updated transactions
 		"""
-		filtered_transactions = [t for t in transactions if t.is_changed()]
-		return self._client.update_transactions(filtered_transactions)
+		return self._client.update_transactions(transactions)
