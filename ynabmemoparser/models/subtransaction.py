@@ -1,11 +1,12 @@
-from dataclasses import dataclass
+from typing import Optional
+
+from pydantic import BaseModel, model_validator
 
 from ynabmemoparser.models.category import Category
 from ynabmemoparser.models.payee import Payee
 
 
-@dataclass
-class SubTransaction:
+class SubTransaction(BaseModel):
 	"""YNAB Subtransaction object for creating split transactions. To be used as element in subtransaction attribute of
 	Transaction class
 
@@ -16,7 +17,7 @@ class SubTransaction:
 	"""
 	payee: Payee
 	category: Category
-	memo: str
+	memo: Optional[str]
 	amount: int
 
 	def as_dict(self) -> dict:
@@ -24,3 +25,9 @@ class SubTransaction:
 					category_id=self.category.id,
 					amount=self.amount,
 					memo=self.memo)
+
+	@model_validator(mode='after')
+	def check_values(self):
+		if self.amount == 0:
+			raise ValueError('Amount needs to be different from 0')
+		return self
