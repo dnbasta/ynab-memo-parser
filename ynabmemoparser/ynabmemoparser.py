@@ -49,8 +49,6 @@ class YnabMemoParser:
 		:return: list of modified transactions
 
 		:raises ParserError: if there is an error while executing parser
-		:raises ExistingSubTransactionError: if original transaction and transaction modifier contain subtransactions
-		since the YNAB API doesn't allow modifying existing split transactions
 		"""
 		parser = parser_class(categories=self.categories, payees=self.payees)
 		modified_transactions = [self._parse_transaction(original=t, parser=parser) for t in transactions]
@@ -65,12 +63,12 @@ class YnabMemoParser:
 			modifier_return = parser.parse(original=original, modifier=modifier)
 			if not isinstance(modifier_return, TransactionModifier):
 				raise ParserError(f"Parser {parser.__class__.__name__} doesn't return TransactionModifier object")
+			TransactionModifier.model_validate(modifier_return.__dict__)
 			modified_transaction = ModifiedTransaction(original_transaction=original,
 													 transaction_modifier=modifier_return)
-			modified_transaction.raise_on_invalid()
 			return modified_transaction
 		except Exception as e:
-			raise ParserError(f"Error while parsing {original.as_dict()} with {parser.__class__.__name__}")
+			raise ParserError(f"Error while parsing {original.as_dict()} with {parser.__class__.__name__}") from e
 
 	def update_transactions(self, transactions: List[ModifiedTransaction]) -> int:
 		"""Takes a list of modified transactions and updates the respective transactions in YNAB

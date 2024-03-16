@@ -6,8 +6,12 @@ import pytest
 from ynabmemoparser.models import OriginalTransaction, Category, Payee, TransactionModifier, ModifiedTransaction
 
 
-@pytest.fixture
-def mock_original():
+@pytest.fixture(scope="function")
+def mock_original(request):
+	try:
+		subs = request.param
+	except AttributeError as e:
+		subs = []
 	return OriginalTransaction(id='id',
 							   memo='memo',
 							   transaction_date=date(2024, 1, 1),
@@ -17,7 +21,7 @@ def mock_original():
 							   flag_color='green',
 							   import_payee_name='ip_name',
 							   import_payee_name_original='ipno_name',
-							   subtransactions=frozenset([]))
+							   subtransactions=frozenset(subs))
 
 
 @pytest.mark.parametrize('test_attribute, test_input', [

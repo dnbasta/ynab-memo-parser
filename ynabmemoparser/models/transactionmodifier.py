@@ -1,6 +1,6 @@
-from dataclasses import dataclass
+from pydantic import BaseModel, model_validator
 from datetime import date
-from typing import List, Literal, Union
+from typing import List, Literal, Optional
 
 from ynabmemoparser.models.category import Category
 from ynabmemoparser.models.originaltransaction import OriginalTransaction
@@ -8,8 +8,7 @@ from ynabmemoparser.models.subtransaction import SubTransaction
 from ynabmemoparser.models.payee import Payee
 
 
-@dataclass
-class TransactionModifier:
+class TransactionModifier(BaseModel):
 	"""Transaction object prefilled with values from original transaction which can take modified values
 
 	:ivar category: The category of the transaction
@@ -22,10 +21,11 @@ class TransactionModifier:
 
 	transaction_date: date
 	category: Category
-	memo: str
+	memo: Optional[str]
 	payee: Payee
-	flag_color: Union[Literal['red', 'green', 'blue', 'orange', 'purple', 'yellow'], None]
+	flag_color: Optional[Literal['red', 'green', 'blue', 'orange', 'purple', 'yellow']]
 	subtransactions: List[SubTransaction]
+	original_is_split: bool
 
 	@classmethod
 	def from_original_transaction(cls, original_transaction: OriginalTransaction):
@@ -34,4 +34,13 @@ class TransactionModifier:
 				   payee=original_transaction.payee,
 				   memo=original_transaction.memo,
 				   flag_color=original_transaction.flag_color,
-				   subtransactions=[])
+				   subtransactions=[],
+				   original_is_split=True if len(original_transaction.subtransactions) > 0 else False)
+
+	@model_validator(mode='after')
+	def check_values(self):
+		if len(self.subtransactions) == 1:
+			raise ValueError(f"There must be at least two subtransactions for a split")
+		elif len(self.subtransactions) > 1 and self.original_is_split:
+			raise ValueError(f"Existing Subtransactions can not be updated")
+		return self
