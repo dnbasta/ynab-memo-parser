@@ -45,7 +45,7 @@ class OriginalTransaction:
 		category = Category(id=t_dict['category_id'], name=t_dict['category_name'])
 		payee = Payee(id=t_dict['payee_id'], name=t_dict['payee_name'], transfer_account_id=t_dict['transfer_account_id'])
 		return OriginalTransaction(id=t_dict['id'],
-								   transaction_date=datetime.strptime(t_dict['date'], '%Y-%m-%d'),
+								   transaction_date=datetime.strptime(t_dict['date'], '%Y-%m-%d').date(),
 								   category=category,
 								   memo=t_dict['memo'],
 								   import_payee_name_original=t_dict['import_payee_name_original'],
