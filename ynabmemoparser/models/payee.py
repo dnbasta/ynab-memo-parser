@@ -1,16 +1,17 @@
-from dataclasses import dataclass
 from typing import Optional
 
+from pydantic import BaseModel, ConfigDict
 
-@dataclass(frozen=True)
-class Payee:
+
+class Payee(BaseModel):
 	"""Represents a YNAB Payee
 
 	:ivar name: The name of the payee
 	:ivar id: The ID of the payee
 	:ivar transfer_account_id: The ID of the transfer account in case payee is of type "Transfer:[account]"
 	"""
-	name: str
+	model_config = ConfigDict(frozen=True)
+	name: Optional[str]
 	id: Optional[str] = None
 	transfer_account_id: Optional[str] = None
 
