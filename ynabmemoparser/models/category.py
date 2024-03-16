@@ -1,13 +1,15 @@
-from dataclasses import dataclass
+from typing import Optional
+
+from pydantic import BaseModel, ConfigDict
 
 
-@dataclass(frozen=True)
-class Category:
+class Category(BaseModel):
 	"""Category object of YNAB budget
 
 	:ivar id: The ID of the category
 	:ivar name: The name of the category
 	"""
-	id: str
+	model_config = ConfigDict(frozen=True)
+	id: Optional[str]
 	name: str
 
