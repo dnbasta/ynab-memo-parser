@@ -1,14 +1,12 @@
-import dataclasses
-from dataclasses import dataclass
 from datetime import datetime
 
-from ynabmemoparser.exceptions import ExistingSubTransactionError
+from pydantic import BaseModel, model_validator
+
 from ynabmemoparser.models.originaltransaction import OriginalTransaction
 from ynabmemoparser.models.transactionmodifier import TransactionModifier
 
 
-@dataclass
-class ModifiedTransaction:
+class ModifiedTransaction(BaseModel):
 	original_transaction: OriginalTransaction
 	transaction_modifier: TransactionModifier
 
@@ -38,3 +36,12 @@ class ModifiedTransaction:
 		if len(self.transaction_modifier.subtransactions) > 0:
 			t_dict = {**t_dict, 'subtransactions': [s.as_dict() for s in self.transaction_modifier.subtransactions]}
 		return t_dict
+
+	@model_validator(mode='after')
+	def check_values(self):
+		if len(self.transaction_modifier.subtransactions) > 1:
+			if len(self.original_transaction.subtransactions) > 1:
+				raise ValueError(f"Existing Subtransactions can not be updated")
+			if sum(a.amount for a in self.transaction_modifier.subtransactions) != self.original_transaction.amount:
+				raise ValueError('Amount of subtransactions needs to be equal to amount of original transaction')
+		return self
