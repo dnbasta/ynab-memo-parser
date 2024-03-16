@@ -9,18 +9,17 @@ from ynabmemoparser.models import TransactionModifier, Payee, Category, SubTrans
 
 @pytest.fixture
 def mock_modifier(request):
-	try:
-		subs = request.param
-	except AttributeError:
-		subs = False
 	return TransactionModifier(memo='memo',
-							   payee=MagicMock(spec=Payee),
-							   category=MagicMock(spec=Category),
+							   payee=Payee(name='pname'),
+							   category=Category(name='cname', id='cid'),
 							   flag_color='red',
 							   subtransactions=[],
-							   transaction_date=date(2024, 1, 1),
-							   original_is_split=subs
-							   )
+							   transaction_date=date(2024, 1, 1))
+
+
+@pytest.fixture
+def mock_subtransaction():
+	return SubTransaction(memo='memo', payee=Payee(name='pname'), category=Category(name='cname', id='cid'), amount=500)
 
 
 @pytest.mark.parametrize('test_attr, test_value', [
@@ -30,7 +29,10 @@ def mock_modifier(request):
 	('category', None),
 	('category', 'xxx'),
 	('flag_color', 'brown'),
-	('subtransactions', [MagicMock(spec=SubTransaction)]),
+	# ('subtransactions', [SubTransaction(memo='memo',
+	# 									payee=Payee(name='pname'),
+	# 									category=Category(name='cname', id='cid'),
+	# 									amount=500)]),
 	('subtransactions', ['xxx', 'xxx']),
 	('transaction_date', 'xxx')
 ])
@@ -43,10 +45,9 @@ def test_invalid_types(test_attr, test_value, mock_modifier):
 		TransactionModifier.model_validate(mock_modifier.__dict__)
 
 
-@pytest.mark.parametrize('mock_modifier', [True], indirect=True)
-def test_invalid_subtransactions(mock_modifier):
+def test_invalid_subtransactions(mock_modifier, mock_subtransaction):
 	# Arrange
-	mock_modifier.subtransactions = [MagicMock(spec=SubTransaction), MagicMock(spec=SubTransaction)]
+	mock_modifier.subtransactions = [mock_subtransaction]
 	with pytest.raises(ValidationError):
 		TransactionModifier.model_validate(mock_modifier.__dict__)
 
@@ -54,12 +55,17 @@ def test_invalid_subtransactions(mock_modifier):
 @pytest.mark.parametrize('test_attr, test_value', [
 	('memo', None),
 	('flag_color', None),
-	('subtransactions', [MagicMock(spec=SubTransaction), MagicMock(spec=SubTransaction)]),
-	('subtransactions', [MagicMock(spec=SubTransaction), MagicMock(spec=SubTransaction), MagicMock(spec=SubTransaction)]),
 	('transaction_date', datetime(2024, 1, 1))
 ])
 def test_valid(test_attr, test_value, mock_modifier):
 	# Arrange
 	mock_modifier.__setattr__(test_attr, test_value)
 	# Assert
+	TransactionModifier.model_validate(mock_modifier.__dict__)
+
+
+def test_valid_subtransactions(mock_modifier, mock_subtransaction):
+	mock_modifier.subtransactions = [mock_subtransaction, mock_subtransaction]
+	TransactionModifier.model_validate(mock_modifier.__dict__)
+	mock_modifier.subtransactions = [mock_subtransaction, mock_subtransaction, mock_subtransaction]
 	TransactionModifier.model_validate(mock_modifier.__dict__)
