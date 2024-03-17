@@ -1,13 +1,16 @@
 # ynab-memo-parser
 
-[![GitHub Release](https://img.shields.io/github/release/dnbasta/ynab-mmo-parser?style=flat)]() 
-[![Github Release](https://img.shields.io/maintenance/yes/2100)]()
+[![GitHub Release](https://img.shields.io/github/release/dnbasta/ynab-memo-parser?style=flat)]() 
+[![Github Release](https://img.shields.io/maintenance/no/2024)]()
 
 This library helps you to use original memo and payee information from your bank transactions to either show additional
 details or substitute/change the current one in YNAB. It can be helpful for cases in which YNAB import does not handle the 
 information coming from the bank well (e.g. not showing the actual bank memo or populating a wrong payee name).
 
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/dnbasta)
+> **_NOTE:_** Consider using the [ynab-transaction-adjuster](https://github.com/dnbasta/ynab-transaction-adjuster) 
+> library instead of this one. It can do the same and more
+
+[!["Buy Me A Coffee"](https://img.shields.io/badge/Buy_Me_A_Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/dnbasta)
 
 ## Preparations
 1. Create a personal access token for YNAB as described [here](https://api.ynab.com/)
