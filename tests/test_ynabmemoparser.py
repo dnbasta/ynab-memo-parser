@@ -7,12 +7,6 @@ from ynabmemoparser.exceptions import ParserError
 from ynabmemoparser.models import ModifiedTransaction
 
 
-@pytest.fixture
-@patch('ynabmemoparser.ynabmemoparser.Client')
-def mock_memo_parser(mock_client):
-	return YnabMemoParser(budget='budget', account='account', token='token')
-
-
 def test_parse_transactions_fails(mock_memo_parser, caplog, mock_original_transaction):
 	# Arrange
 	class MyParser(Parser):

@@ -1,7 +1,7 @@
 from typing import List, Type
 
 from ynabmemoparser.client import Client
-from ynabmemoparser.exceptions import ParserError, NoMatchingCategoryError
+from ynabmemoparser.exceptions import ParserError
 from ynabmemoparser.models import OriginalTransaction, ModifiedTransaction
 from ynabmemoparser.parser import Parser
 from ynabmemoparser.models import TransactionModifier
