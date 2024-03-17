@@ -25,4 +25,10 @@
 ::: models.Category
 ::: models.Payee
 
+## Exceptions
+::: exceptions.NoMatchingCategoryError
+::: exceptions.MultipleMatchingCategoriesError
+::: exceptions.NoMatchingPayeeError
+::: exceptions.ExistingSubTransactionError
+
 
