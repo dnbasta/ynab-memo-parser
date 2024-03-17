@@ -1,11 +1,12 @@
 from typing import List
 
 import requests
+from requests import HTTPError
 
 from ynabmemoparser.models import CategoryGroup, ModifiedTransaction
 from ynabmemoparser.models import OriginalTransaction
 from ynabmemoparser.models import Payee
-from ynabmemoparser.models import TransactionModifier
+
 
 YNAB_BASE_URL = 'https://api.ynab.com/v1'
 
@@ -52,11 +53,19 @@ class Client:
 		return transactions
 
 	def update_transactions(self, transactions: List[ModifiedTransaction]) -> int:
-		"""Updates transactions in YNAB"""
+		"""Updates transactions in YNAB. The updates are done in bulk.
+
+		:param transactions: list of modified transactions to be updated
+		:raises HTTPError: if bulk update call is not successful. Error can be related to any item in the passed list
+		of transactions
+		"""
 		update_dict = {'transactions': [r.as_dict() for r in transactions]}
 		r = requests.patch(f'{YNAB_BASE_URL}/budgets/{self._budget}/transactions',
 						   json=update_dict,
 						   headers=self._header)
-		r.raise_for_status()
+		try:
+			r.raise_for_status()
+		except HTTPError as e:
+			raise HTTPError(r.text, update_dict)
 		r_dict = r.json()['data']['transaction_ids']
 		return len(r_dict)
