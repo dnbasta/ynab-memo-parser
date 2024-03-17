@@ -1,7 +1,7 @@
 from typing import List, Type
 
 from ynabmemoparser.client import Client
-from ynabmemoparser.exceptions import ParserError
+from ynabmemoparser.exceptions import ParserError, NoMatchingCategoryError
 from ynabmemoparser.models import OriginalTransaction, ModifiedTransaction
 from ynabmemoparser.parser import Parser
 from ynabmemoparser.models import TransactionModifier
@@ -48,7 +48,8 @@ class YnabMemoParser:
 		:param return_only_changed: If set to False returns all transactions no matter whether they were changed or not
 		:return: list of modified transactions
 
-		:raises ParserError: if there is an error while executing parser
+		:raises ParserError: if there is an error in parsing a transaction either during the parsing itself or upon
+		validating the result
 		"""
 		parser = parser_class(categories=self.categories, payees=self.payees)
 		modified_transactions = [self._parse_transaction(original=t, parser=parser) for t in transactions]
@@ -56,14 +57,14 @@ class YnabMemoParser:
 			modified_transactions = [t for t in modified_transactions if t.is_changed()]
 		return modified_transactions
 
-	@staticmethod
-	def _parse_transaction(original: OriginalTransaction, parser: Parser) -> ModifiedTransaction:
+	def _parse_transaction(self, original: OriginalTransaction, parser: Parser) -> ModifiedTransaction:
 		modifier = TransactionModifier.from_original_transaction(original_transaction=original)
 		try:
 			modifier_return = parser.parse(original=original, modifier=modifier)
 			if not isinstance(modifier_return, TransactionModifier):
 				raise ParserError(f"Parser {parser.__class__.__name__} doesn't return TransactionModifier object")
 			TransactionModifier.model_validate(modifier_return.__dict__)
+			self.categories.fetch_by_id(modifier_return.category.id)
 			modified_transaction = ModifiedTransaction(original_transaction=original,
 													 transaction_modifier=modifier_return)
 			return modified_transaction
