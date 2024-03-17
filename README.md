@@ -15,7 +15,9 @@ information coming from the bank well (e.g. not showing the actual bank memo or 
 https://app.ynab.com/ and open the target account by clicking on the name on the left hand side menu. 
 The URL does now contain both IDs `https://app.ynab.com/<budget_id>/accounts/<account_id>`
 
-## Basic Usage
+## Usage
+A detailed documentation is available at https://ynab-memo-parser.readthedocs.io
+
 ### Fetch transactions
 Fetch current transactions from YNAB backend with all available information and check for useful values. All records 
 come with two attributes (`import_payee_name` and `import_payee_name_original`) which are not shown in the user 
@@ -63,4 +65,3 @@ the changed transactions in YNAB and return an integer with the number of succes
 ```py
 count = ynab_memo_parser.update_transactions(transactions=mod_transactions)
 ```
-
