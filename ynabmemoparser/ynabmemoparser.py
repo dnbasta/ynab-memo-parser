@@ -52,12 +52,12 @@ class YnabMemoParser:
 		validating the result
 		"""
 		parser = parser_class(categories=self.categories, payees=self.payees)
-		modified_transactions = [self._parse_transaction(original=t, parser=parser) for t in transactions]
+		modified_transactions = [self._parse_single_transaction(original=t, parser=parser) for t in transactions]
 		if return_only_changed:
 			modified_transactions = [t for t in modified_transactions if t.is_changed()]
 		return modified_transactions
 
-	def _parse_transaction(self, original: OriginalTransaction, parser: Parser) -> ModifiedTransaction:
+	def _parse_single_transaction(self, original: OriginalTransaction, parser: Parser) -> ModifiedTransaction:
 		modifier = TransactionModifier.from_original_transaction(original_transaction=original)
 		try:
 			modifier_return = parser.parse(original=original, modifier=modifier)
