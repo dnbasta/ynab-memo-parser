@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 
 from ynabmemoparser.exceptions import NoMatchingCategoryError, MultipleMatchingCategoriesError
 from ynabmemoparser.models import CategoryGroup
@@ -43,12 +43,10 @@ class CategoryRepo:
 		except StopIteration:
 			raise NoMatchingCategoryError(category_id)
 
-	def fetch_all_from_group(self, group_name: str) -> List[Category]:
-		"""Fetches all categories of a group from YNAB budget
+	def fetch_all(self) -> Dict[str, List[Category]]:
+		"""Fetches all Categories from YNAB budget
 
-		:param group_name: Name of the group to fetch categories for
-		:return: List of all categories in group
-		:raises NoMatchingCategoryError: if no matching category is found
+		:return: Dictionary with group names as keys and list of categories as values
 		"""
-		cat_group = next(c for c in self._categories if c.name == group_name)
-		return list(cat_group.categories)
+
+		return {cg.name: list(cg.categories) for cg in self._categories}
