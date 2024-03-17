@@ -16,62 +16,51 @@ https://app.ynab.com/ and open the target account by clicking on the name on the
 The URL does now contain both IDs `https://app.ynab.com/<budget_id>/accounts/<account_id>`
 
 ## Basic Usage
-### 1. Install library from PyPI
-
-```bash
-pip install ynab-memo-parser
-```
-### 2. Check your original memo and payee values for potential things to use
-All records in YNAB come with their original memo and payee information attached. You can see both values if you use
-the `fetch records' function of this library and look at a couple sample records.
+### Fetch transactions
+Fetch current transactions from YNAB backend with all available information and check for useful values. All records 
+come with two attributes (`import_payee_name` and `import_payee_name_original`) which are not shown in the user 
+interface.
 ```py
 from ynabmemoparser import YnabMemoParser
 
 ynab_memo_parser = YnabMemoParser(token='<token>', budget='<budget>', account='<account>')
-ynab_memo_parser.fetch_record_dicts()
+orig_transactions = ynab_memo_parser.fetch_transactions()
 ```
-You will get back a dictionary with all data stored for the transaction. The library uses the following keys with the
-stated labels
-- `import_payee_name_original` as `original_memo`
-- `import_payee_name` as `original_payee`
-- `payee` as `current_payee`
-- `memo` as `current_memo`
 
-
-### 3. Create a `Parser` child class which implements your logic
-The class needs to implement a logic for `parse_payee()` and `parse_memo()` based on the values coming from the four 
-fields above. If you don't want to change anything in the field you e.g. just `return current_payee` inside the 
-`parse_payee()` function. 
-
+### Create a `Parser` child class
+This class is for implementing your actual logic. It needs to implement a `parse()` method which receives on runtime 
+the `OriginalTransaction` and a `TransactionModifier`. The 
+latter is prefilled with values from the original transaction. Its attributes can be modified and it needs to be 
+returned at the end of the function.
 ```py
 from ynabmemoparser import Parser
+from ynabmemoparser.models import OriginalTransaction, TransactionModifier
 
 class MyParser(Parser):
 
-    def parse_payee(self, original_payee: str, current_payee: str, original_memo: str, current_memo: str) -> str:
-        # your implementation
+	def parse(self, original: OriginalTransaction, modifier: TransactionModifier) -> TransactionModifier:
+		# your implementation
 
-    def parse_memo(self, original_payee: str, current_payee: str, original_memo: str, current_memo: str) -> str:
-        # your implementation
-
+		# return the altered modifier
+		return modifier
 ```
-### 3. Test your parser on some records
+
+### Test your parser
+Test the parser on records fetched via the `fetch_transactions()`method. If only a subset of these transactions should
+et parsed, filter them before handing the list over to the `parse_transactions()` method. The method returns a list of 
+`ModifiedTransaction` objects which can be inspected for the changed properties.
 ```py
-from ynabmemoparser import YnabMemoParser
-
-ynab_memo_parser = YnabMemoParser(token='<token>', budget='<budget>', account='<account>')
-record_dicts = ynab_memo_parser.fetch_record_dicts()
-parsed_records = ynab_memo_parser.parse_records(records_dicts=record_dicts, parser=MyParser())
+transations = ynab_memo_parser.fetch_transactions()
+# optionally filter transactions before passing them to method below
+mod_transactions = ynab_memo_parser.parse_transactions(transactions=transactions,
+                                                       parser_class=MyParser)
 ```
-You will get back a list of `YnabRecord` objects. Check the `payee` and `memo` fields in these objects to see the result
-of your parser.
 
-### 4. Update your records in YNAB
-If you are satisfied with your parsing results you can pass the list of `YnabRecord` to the `update_records()`function.
-It will update the `payee`and `memo` values in YNAB with the values in the `YnabRecord` object
+### Update records in YNAB
+If you are satisfied with your parsing results you can pass the list of the 
+`ModifedTransaction` objects to the `update_records()` method. It will update  
+the changed transactions in YNAB and return an integer with the number of successfully updated records.
 ```py
-ynab_memo_parser.update_records(parsed_records)
+count = ynab_memo_parser.update_transactions(transactions=mod_transactions)
 ```
-If the insert is successful you get back an integer with the number of records which have been updated.
-
 
